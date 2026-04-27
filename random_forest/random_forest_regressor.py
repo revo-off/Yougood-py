@@ -52,4 +52,4 @@ if target_col in data.columns:
     print(f"R2: {r2:.3f}")
 
 joblib.dump(model, 'random_forest/random_forest_regressor.pkl')
-print("Model saved as 'random_forest/random_forest_regressor.pkl'")
+print("Model saved successfully.")

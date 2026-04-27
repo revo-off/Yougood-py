@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 
 from sklearn.cluster import KMeans
 from sklearn.model_selection import train_test_split
@@ -69,4 +70,5 @@ if target_col in data.columns:
     print(classification_report(y_test, y_pred, target_names=le.classes_))
     print("Accuracy:", accuracy_score(y_test, y_pred))
 
-    joblib.dump(kmeans, "kmeans_burnout_model.pkl")
+    save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kmeans_burnout_cluster_probs.pkl")
+    joblib.dump(cluster_probs, save_path)
