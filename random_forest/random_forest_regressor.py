@@ -1,5 +1,8 @@
+import os
+
 import pandas as pd
 import numpy as np
+from shap import kmeans
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -55,5 +58,10 @@ if target_col in data.columns:
     print(f"MSE: {mse:.3f}")
     print(f"R2: {r2:.3f}")
 
-joblib.dump(model, 'random_forest/random_forest_regressor.pkl')
-print("Model saved successfully.")
+    save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "random_forest_regressor.pkl")
+    scaler_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "random_forest_scaler.pkl")
+    model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "random_forest_model.pkl")
+
+    joblib.dump(model, save_path)
+    joblib.dump(scaler, scaler_path)
+    joblib.dump(RandomForestRegressor, model_path)
