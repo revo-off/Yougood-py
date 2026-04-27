@@ -11,18 +11,16 @@ import joblib
 
 data = pd.read_csv('./data/developer_burnout_dataset_7000.csv')
 
-target_col = 'burnout_level'
-
-if target_col in data.columns:
+if 'burnout_level' in data.columns:
     df = data.copy()
 
     for col in df.select_dtypes(include=[np.number]).columns:
         df[col] = df[col].fillna(df[col].median())
 
-    df = df.dropna(subset=[target_col])
+    df = df.dropna(subset=['stress_level', 'burnout_level'])
 
-    X = df.drop(columns=[target_col])
-    y = df[target_col]
+    X = df.drop(columns=['stress_level', 'burnout_level'])
+    y = df['burnout_level']
 
     le = LabelEncoder()
     y = le.fit_transform(y)

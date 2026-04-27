@@ -130,7 +130,7 @@ def main():
         kmeans_scaler = joblib.load(km_scaler_path)
         cluster_probs = joblib.load('kmeans/kmeans_burnout_cluster_probs.pkl')
         
-        X_km = df.drop(columns=['burnout_level'])
+        X_km = df.drop(columns=['stress_level', 'burnout_level'])
         X_kmeans_train, X_kmeans_test, y_kmeans_train, y_kmeans_test = train_test_split(
             X_km, y_burnout, test_size=0.2, random_state=42, stratify=y_burnout
         )
