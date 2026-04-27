@@ -71,4 +71,9 @@ if target_col in data.columns:
     print("Accuracy:", accuracy_score(y_test, y_pred))
 
     save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kmeans_burnout_cluster_probs.pkl")
+    scaler_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kmeans_scaler.pkl")
+    model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kmeans_model.pkl")
+    
     joblib.dump(cluster_probs, save_path)
+    joblib.dump(scaler, scaler_path)
+    joblib.dump(kmeans, model_path)

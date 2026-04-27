@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, mean_absolute_error, mean_squared_error, r2_score
 import joblib
 
@@ -15,17 +16,20 @@ if target_col in data.columns:
     for col in df.select_dtypes(include=[np.number]).columns:
         df[col] = df[col].fillna(df[col].median())
 
-    df = df.dropna(subset=[target_col])
+    df = df.dropna(subset=['stress_level', 'burnout_level'])
 
-    X = df.drop(columns=[target_col])
+    X = df.drop(columns=['stress_level', 'burnout_level'])
     y = df[target_col]
 
     categorical_cols = X.select_dtypes(include=['object', 'string']).columns
     if len(categorical_cols) > 0:
         X = pd.get_dummies(X, columns=categorical_cols, drop_first=True)
 
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
     X_train, X_test, y_train, y_test = train_test_split(
-        X,
+        X_scaled,
         y,
         test_size=0.2,
         random_state=42
