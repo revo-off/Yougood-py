@@ -54,12 +54,17 @@ def train_svm_pipeline(data_path):
     print("Classification Report:")
     print(classification_report(y_test_b, burnout_preds))
     
+    import os
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    
     # Save models
-    joblib.dump(svr, './svr_stress_model.pkl')
-    joblib.dump(svc, './svc_burnout_model.pkl')
-    joblib.dump(scaler, './svm_scaler.pkl')
+    joblib.dump(svr, os.path.join(base_dir, 'svr_stress_model.pkl'))
+    joblib.dump(svc, os.path.join(base_dir, 'svc_burnout_model.pkl'))
+    joblib.dump(scaler, os.path.join(base_dir, 'svm_scaler.pkl'))
     print("\nModels saved successfully.")
 
 if __name__ == "__main__":
-    dataset_path = "../data/developer_burnout_dataset_7000.csv"
+    import os
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    dataset_path = os.path.join(base_dir, "..", "data", "developer_burnout_dataset_7000.csv")
     train_svm_pipeline(dataset_path)

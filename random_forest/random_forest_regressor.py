@@ -51,5 +51,5 @@ if target_col in data.columns:
     print(f"MSE: {mse:.3f}")
     print(f"R2: {r2:.3f}")
 
-joblib.dump(model, 'random_forest_regressor.pkl')
-print("Model saved as 'random_forest_regressor.pkl'")
+joblib.dump(model, 'random_forest/random_forest_regressor.pkl')
+print("Model saved as 'random_forest/random_forest_regressor.pkl'")
