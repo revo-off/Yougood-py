@@ -49,14 +49,28 @@ feature_names = [
     "screen_time","exercise_hours"
 ]
 
+if 'random_profile' not in st.session_state:
+    st.session_state.random_profile = {feature: float(df[feature].median()) if feature in df.columns else 50.0 for feature in feature_names}
+
+if st.sidebar.button("🎲 Randomize Profile"):
+    st.session_state.random_profile['age'] = float(np.random.randint(20, 60))
+    st.session_state.random_profile['experience_years'] = float(np.random.uniform(0, st.session_state.random_profile['age'] - 18))
+    st.session_state.random_profile['daily_work_hours'] = float(np.random.uniform(4, 14))
+    st.session_state.random_profile['sleep_hours'] = float(np.random.uniform(4, 10))
+    st.session_state.random_profile['caffeine_intake'] = float(np.random.randint(0, 10))
+    st.session_state.random_profile['bugs_per_day'] = float(np.random.randint(0, 20))
+    st.session_state.random_profile['commits_per_day'] = float(np.random.randint(0, 15))
+    st.session_state.random_profile['meetings_per_day'] = float(np.random.randint(0, 8))
+    st.session_state.random_profile['screen_time'] = float(np.random.uniform(4, 16))
+    st.session_state.random_profile['exercise_hours'] = float(np.random.uniform(0, 3))
+
 input_features = {}
 for feature in feature_names:
-    default_val = float(df[feature].median()) if feature in df.columns else 50.0
     input_features[feature] = st.sidebar.number_input(
         feature.replace('_', ' ').title(), 
         min_value=0.0, 
         max_value=float(df[feature].max()*1.5) if feature in df.columns else 100.0, 
-        value=default_val
+        value=st.session_state.random_profile[feature]
     )
 
 input_df = pd.DataFrame([input_features])
