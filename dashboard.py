@@ -80,17 +80,17 @@ with col1:
     stress_prediction = None
     try:
         if reg_model_choice == "Random Forest":
-            path = os.path.join(os.path.dirname(__file__), "random_forest", "random_forest_regressor.pkl")
+            path = os.path.join(os.path.dirname(__file__), "random_forest", "random_forest_regressor_optimized.pkl")
             model = joblib.load(path)
             stress_prediction = model.predict(input_scaled)[0]
             
         elif reg_model_choice == "Support Vector Regressor (SVR)":
-            path = os.path.join(os.path.dirname(__file__), "SVM", "svr_stress_model.pkl")
+            path = os.path.join(os.path.dirname(__file__), "SVM", "svr_stress_model_optimized.pkl")
             model = joblib.load(path)
             stress_prediction = model.predict(input_scaled)[0]
             
         elif reg_model_choice == "TabNet":
-            path = os.path.join(os.path.dirname(__file__), "TabNet", "tabnet_stress_model.zip")
+            path = os.path.join(os.path.dirname(__file__), "TabNet", "tabnet_stress_model_optimized.zip")
             model = TabNetRegressor()
             model.load_model(path)
             stress_prediction = model.predict(input_scaled)[0][0]
@@ -107,18 +107,24 @@ with col1:
 # ==========================================
 with col2:
     st.header("🔥 Burnout Risk Classification")
-    clf_model_choice = st.selectbox("Select Classification Model:", ["Support Vector Classifier (SVC)", "TabNet", "KMeans"])
+    clf_model_choice = st.selectbox("Select Classification Model:", ["Random Forest", "Support Vector Classifier (SVC)", "TabNet", "KMeans"])
     
     burnout_prediction = None
     try:
-        if clf_model_choice == "Support Vector Classifier (SVC)":
-            path = os.path.join(os.path.dirname(__file__), "SVM", "svc_burnout_model.pkl")
+        if clf_model_choice == "Random Forest":
+            path = os.path.join(os.path.dirname(__file__), "random_forest", "random_forest_classifier_optimized.pkl")
+            model = joblib.load(path)
+            pred = model.predict(input_scaled)[0]
+            burnout_prediction = pred if isinstance(pred, str) else le.inverse_transform([pred])[0]
+            
+        elif clf_model_choice == "Support Vector Classifier (SVC)":
+            path = os.path.join(os.path.dirname(__file__), "SVM", "svc_burnout_model_optimized.pkl")
             model = joblib.load(path)
             pred = model.predict(input_scaled)[0]
             burnout_prediction = pred if isinstance(pred, str) else le.inverse_transform([pred])[0]
             
         elif clf_model_choice == "TabNet":
-            path = os.path.join(os.path.dirname(__file__), "TabNet", "tabnet_burnout_model.zip")
+            path = os.path.join(os.path.dirname(__file__), "TabNet", "tabnet_burnout_model_optimized.zip")
             model = TabNetClassifier()
             model.load_model(path)
             pred = model.predict(input_scaled)[0]
@@ -161,10 +167,10 @@ bench_col1, bench_col2 = st.columns(2)
 with bench_col1:
     st.subheader("📈 Stress Level (Regression)")
     reg_bench_df = pd.DataFrame({
-        "Model": ["TabNet", "Support Vector Regressor", "Random Forest"],
-        "R² Score": [0.7796, 0.7734, 0.7682],
-        "MSE": [112.28, 115.45, 118.06],
-        "MAE": [8.38, 8.52, 8.66]
+        "Model": ["Support Vector Regressor", "TabNet", "Random Forest"],
+        "R² Score": [0.7884, 0.7835, 0.7677],
+        "MSE": [107.80, 110.30, 118.35],
+        "MAE": [8.18, 8.23, 8.68]
     })
     
     st.dataframe(
@@ -180,9 +186,9 @@ with bench_col1:
 with bench_col2:
     st.subheader("🔥 Burnout Risk (Classification)")
     clf_bench_df = pd.DataFrame({
-        "Model": ["TabNet", "Support Vector Classifier", "KMeans"],
-        "Accuracy": [0.7777, 0.7682, 0.5117],
-        "F1 Score": [0.7775, 0.7669, 0.5045]
+        "Model": ["Support Vector Classifier", "TabNet", "Random Forest", "KMeans"],
+        "Accuracy": [0.7821, 0.7770, 0.7507, 0.5117],
+        "F1 Score": [0.7816, 0.7769, 0.7487, 0.5045]
     })
     
     st.dataframe(

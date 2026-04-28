@@ -9,7 +9,8 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR, SVC
 from sklearn.cluster import KMeans
-from sklearn.metrics import r2_score, accuracy_score
+from sklearn.metrics import r2_score, accuracy_score, f1_score
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import torch
 from pytorch_tabnet.tab_model import TabNetRegressor, TabNetClassifier
 
@@ -100,7 +101,20 @@ def main():
 
     print("\n--- 2. OPTIMIZING CLASSIFICATION MODELS (Burnout Risk) ---")
     
-    # 2.1 SVC Optimization
+    # 2.1 Random Forest Optimization
+    print("\nRandom Forest Classifier...")
+    rf_c_param_grid = {
+        'n_estimators': [50, 100, 200],
+        'max_depth': [None, 10, 20, 30],
+        'min_samples_split': [2, 5, 10]
+    }
+    rf_c_search = RandomizedSearchCV(RandomForestClassifier(random_state=42), rf_c_param_grid, n_iter=10, cv=3, scoring='accuracy', n_jobs=-1, verbose=1, random_state=42)
+    rf_c_search.fit(X_train_c, y_train_c)
+    print(f"Best RF Classifier Params: {rf_c_search.best_params_}")
+    print(f"Best RF Classifier Cross-Val Acc: {rf_c_search.best_score_:.4f}")
+    joblib.dump(rf_c_search.best_estimator_, 'random_forest/random_forest_classifier_optimized.pkl')
+
+    # 2.2 SVC Optimization
     print("\nSupport Vector Classifier (SVC)...")
     svc_param_grid = {
         'C': [0.1, 1, 10],

@@ -49,40 +49,40 @@ def main():
 
     X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(X_scaled, y_stress, test_size=0.2, random_state=42)
 
-    # SVM (SVR)
+    # SVM (SVR) Optimized
     try:
-        svr = joblib.load('SVM/svr_stress_model.pkl')
-        svr_preds = svr.predict(X_test_r)
-        svr_mse = mean_squared_error(y_test_r, svr_preds)
-        svr_mae = mean_absolute_error(y_test_r, svr_preds)
-        svr_r2 = r2_score(y_test_r, svr_preds)
-        print(f"{'SVM (SVR)':<15} | {svr_mse:<10.4f} | {svr_mae:<10.4f} | {svr_r2:<10.4f}")
+        svr_opt = joblib.load('SVM/svr_stress_model_optimized.pkl')
+        svr_opt_preds = svr_opt.predict(X_test_r)
+        svr_opt_mse = mean_squared_error(y_test_r, svr_opt_preds)
+        svr_opt_mae = mean_absolute_error(y_test_r, svr_opt_preds)
+        svr_opt_r2 = r2_score(y_test_r, svr_opt_preds)
+        print(f"{'SVM (SVR) Opt':<15} | {svr_opt_mse:<10.4f} | {svr_opt_mae:<10.4f} | {svr_opt_r2:<10.4f}")
     except FileNotFoundError:
-        print(f"{'SVM (SVR)':<15} | {'N/A':<10} | {'N/A':<10} | {'N/A':<10}")
+        print(f"{'SVM (SVR) Opt':<15} | {'N/A':<10} | {'N/A':<10} | {'N/A':<10}")
 
-    # Random Forest Regressor
+    # Random Forest Regressor Optimized
     try:
-        rf_path = 'random_forest/random_forest_regressor.pkl'
-        rf_reg = joblib.load(rf_path)
-        rf_preds = rf_reg.predict(X_test_r)
-        rf_mse = mean_squared_error(y_test_r, rf_preds)
-        rf_mae = mean_absolute_error(y_test_r, rf_preds)
-        rf_r2 = r2_score(y_test_r, rf_preds)
-        print(f"{'Random Forest':<15} | {rf_mse:<10.4f} | {rf_mae:<10.4f} | {rf_r2:<10.4f}")
+        rf_opt_path = 'random_forest/random_forest_regressor_optimized.pkl'
+        rf_opt_reg = joblib.load(rf_opt_path)
+        rf_opt_preds = rf_opt_reg.predict(X_test_r)
+        rf_opt_mse = mean_squared_error(y_test_r, rf_opt_preds)
+        rf_opt_mae = mean_absolute_error(y_test_r, rf_opt_preds)
+        rf_opt_r2 = r2_score(y_test_r, rf_opt_preds)
+        print(f"{'RF Opt':<15} | {rf_opt_mse:<10.4f} | {rf_opt_mae:<10.4f} | {rf_opt_r2:<10.4f}")
     except FileNotFoundError:
-        print(f"{'Random Forest':<15} | {'N/A':<10} | {'N/A':<10} | {'N/A':<10}")
+        print(f"{'RF Opt':<15} | {'N/A':<10} | {'N/A':<10} | {'N/A':<10}")
 
-    # TabNet Regressor
+    # TabNet Regressor Optimized
     try:
-        tabnet_reg = TabNetRegressor()
-        tabnet_reg.load_model('TabNet/tabnet_stress_model.zip')
-        tab_preds = tabnet_reg.predict(X_test_r)
-        tab_mse = mean_squared_error(y_test_r, tab_preds)
-        tab_mae = mean_absolute_error(y_test_r, tab_preds)
-        tab_r2 = r2_score(y_test_r, tab_preds)
-        print(f"{'TabNet':<15} | {tab_mse:<10.4f} | {tab_mae:<10.4f} | {tab_r2:<10.4f}")
+        tabnet_opt_reg = TabNetRegressor()
+        tabnet_opt_reg.load_model('TabNet/tabnet_stress_model_optimized.zip')
+        tab_opt_preds = tabnet_opt_reg.predict(X_test_r)
+        tab_opt_mse = mean_squared_error(y_test_r, tab_opt_preds)
+        tab_opt_mae = mean_absolute_error(y_test_r, tab_opt_preds)
+        tab_opt_r2 = r2_score(y_test_r, tab_opt_preds)
+        print(f"{'TabNet Opt':<15} | {tab_opt_mse:<10.4f} | {tab_opt_mae:<10.4f} | {tab_opt_r2:<10.4f}")
     except Exception as e:
-        print(f"{'TabNet':<15} | {'N/A':<10} | {'N/A':<10} | {'N/A':<10}")
+        print(f"{'TabNet Opt':<15} | {'N/A':<10} | {'N/A':<10} | {'N/A':<10}")
 
 
     # ---------------------------------------------------------
@@ -96,30 +96,41 @@ def main():
     # Test split
     X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X_scaled, y_burnout, test_size=0.2, random_state=42, stratify=y_burnout)
 
-    # SVM (SVC)
+    # SVM (SVC) Optimized
     try:
-        svc = joblib.load('SVM/svc_burnout_model.pkl')
-        svc_preds = svc.predict(X_test_c)
+        svc_opt = joblib.load('SVM/svc_burnout_model_optimized.pkl')
+        svc_opt_preds = svc_opt.predict(X_test_c)
 
-        if isinstance(svc_preds[0], str) or np.issubdtype(type(svc_preds[0]), np.character):
-            svc_preds = le.transform(svc_preds)
+        if isinstance(svc_opt_preds[0], str) or np.issubdtype(type(svc_opt_preds[0]), np.character):
+            svc_opt_preds = le.transform(svc_opt_preds)
             
-        svc_acc = accuracy_score(y_test_c, svc_preds)
-        svc_f1 = f1_score(y_test_c, svc_preds, average='weighted')
-        print(f"{'SVM (SVC)':<15} | {svc_acc:<10.4f} | {svc_f1:<10.4f}")
+        svc_opt_acc = accuracy_score(y_test_c, svc_opt_preds)
+        svc_opt_f1 = f1_score(y_test_c, svc_opt_preds, average='weighted')
+        print(f"{'SVM (SVC) Opt':<15} | {svc_opt_acc:<10.4f} | {svc_opt_f1:<10.4f}")
     except FileNotFoundError:
-        print(f"{'SVM (SVC)':<15} | {'N/A':<10} | {'N/A':<10}")
+        print(f"{'SVM (SVC) Opt':<15} | {'N/A':<10} | {'N/A':<10}")
 
-    # TabNet Classifier
+    # Random Forest Classifier Optimized
     try:
-        tabnet_clf = TabNetClassifier()
-        tabnet_clf.load_model('TabNet/tabnet_burnout_model.zip')
-        tab_c_preds = tabnet_clf.predict(X_test_c)
-        tab_c_acc = accuracy_score(y_test_c, tab_c_preds)
-        tab_c_f1 = f1_score(y_test_c, tab_c_preds, average='weighted')
-        print(f"{'TabNet':<15} | {tab_c_acc:<10.4f} | {tab_c_f1:<10.4f}")
+        rf_opt_clf_path = 'random_forest/random_forest_classifier_optimized.pkl'
+        rf_opt_clf = joblib.load(rf_opt_clf_path)
+        rf_opt_clf_preds = rf_opt_clf.predict(X_test_c)
+        rf_opt_c_acc = accuracy_score(y_test_c, rf_opt_clf_preds)
+        rf_opt_c_f1 = f1_score(y_test_c, rf_opt_clf_preds, average='weighted')
+        print(f"{'RF Opt':<15} | {rf_opt_c_acc:<10.4f} | {rf_opt_c_f1:<10.4f}")
+    except FileNotFoundError:
+        print(f"{'RF Opt':<15} | {'N/A':<10} | {'N/A':<10}")
+
+    # TabNet Classifier Optimized
+    try:
+        tabnet_opt_clf = TabNetClassifier()
+        tabnet_opt_clf.load_model('TabNet/tabnet_burnout_model_optimized.zip')
+        tab_opt_c_preds = tabnet_opt_clf.predict(X_test_c)
+        tab_opt_c_acc = accuracy_score(y_test_c, tab_opt_c_preds)
+        tab_opt_c_f1 = f1_score(y_test_c, tab_opt_c_preds, average='weighted')
+        print(f"{'TabNet Opt':<15} | {tab_opt_c_acc:<10.4f} | {tab_opt_c_f1:<10.4f}")
     except Exception as e:
-        print(f"{'TabNet':<15} | {'N/A':<10} | {'N/A':<10}")
+        print(f"{'TabNet Opt':<15} | {'N/A':<10} | {'N/A':<10}")
 
     # KMeans Classifier
     try:
