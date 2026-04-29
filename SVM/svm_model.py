@@ -54,14 +54,7 @@ def train_svm_pipeline(data_path):
     print("Classification Report:")
     print(classification_report(y_test_b, burnout_preds))
     
-    import os
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Save models
-    joblib.dump(svr, os.path.join(base_dir, 'svr_stress_model.pkl'))
-    joblib.dump(svc, os.path.join(base_dir, 'svc_burnout_model.pkl'))
-    joblib.dump(scaler, os.path.join(base_dir, 'svm_scaler.pkl'))
-    print("\nModels saved successfully.")
+    print("\nNOTE: Base model saving has been disabled. Use optimize_models.py to generate .pkl files.")
 
 if __name__ == "__main__":
     import os

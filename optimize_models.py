@@ -13,6 +13,24 @@ from sklearn.metrics import r2_score, accuracy_score, f1_score
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import torch
 from pytorch_tabnet.tab_model import TabNetRegressor, TabNetClassifier
+from sklearn.model_selection import KFold
+
+# Custom Bootstrap Validation (Out-Of-Bag)
+class BootstrapCV:
+    def __init__(self, n_splits=5, random_state=42):
+        self.n_splits = n_splits
+        self.random_state = random_state
+        
+    def split(self, X, y=None, groups=None):
+        np.random.seed(self.random_state)
+        n_samples = len(X) if isinstance(X, np.ndarray) else X.shape[0]
+        for _ in range(self.n_splits):
+            train_idx = np.random.choice(n_samples, size=n_samples, replace=True)
+            test_idx = np.array(list(set(range(n_samples)) - set(train_idx)))
+            yield train_idx, test_idx
+            
+    def get_n_splits(self, X=None, y=None, groups=None):
+        return self.n_splits
 
 warnings.filterwarnings('ignore')
 
@@ -47,13 +65,14 @@ def main():
     print("\n--- 1. OPTIMIZING REGRESSION MODELS (Stress Level) ---")
     
     # 1.1 Random Forest Optimization
-    print("\nRandom Forest Regressor...")
+    print("\nRandom Forest Regressor (K-Fold CV)...")
     rf_param_grid = {
         'n_estimators': [50, 100, 200],
         'max_depth': [None, 10, 20, 30],
         'min_samples_split': [2, 5, 10]
     }
-    rf_search = RandomizedSearchCV(RandomForestRegressor(random_state=42), rf_param_grid, n_iter=10, cv=3, scoring='r2', n_jobs=-1, verbose=1, random_state=42)
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
+    rf_search = RandomizedSearchCV(RandomForestRegressor(random_state=42), rf_param_grid, n_iter=10, cv=kf, scoring='r2', n_jobs=-1, verbose=1, random_state=42)
     rf_search.fit(X_train_r, y_train_r)
     print(f"Best RF Params: {rf_search.best_params_}")
     print(f"Best RF Cross-Val R2: {rf_search.best_score_:.4f}")
@@ -61,13 +80,14 @@ def main():
     joblib.dump(rf_search.best_estimator_, 'random_forest/random_forest_regressor_optimized.pkl')
 
     # 1.2 SVM SVR Optimization
-    print("\nSupport Vector Regressor (SVR)...")
+    print("\nSupport Vector Regressor (SVR) (Bootstrapping OOB)...")
     svr_param_grid = {
         'C': [0.1, 1, 10],
         'kernel': ['linear', 'rbf'],
         'gamma': ['scale', 'auto']
     }
-    svr_search = RandomizedSearchCV(SVR(), svr_param_grid, n_iter=5, cv=3, scoring='r2', n_jobs=-1, verbose=1, random_state=42)
+    boot_cv = BootstrapCV(n_splits=5, random_state=42)
+    svr_search = RandomizedSearchCV(SVR(), svr_param_grid, n_iter=5, cv=boot_cv, scoring='r2', n_jobs=-1, verbose=1, random_state=42)
     svr_search.fit(X_train_r, y_train_r)
     print(f"Best SVR Params: {svr_search.best_params_}")
     print(f"Best SVR Cross-Val R2: {svr_search.best_score_:.4f}")
@@ -101,35 +121,37 @@ def main():
 
     print("\n--- 2. OPTIMIZING CLASSIFICATION MODELS (Burnout Risk) ---")
     
-    # 2.1 Random Forest Optimization
-    print("\nRandom Forest Classifier...")
+    # 2.1 Random Forest Optimization (Baseline - No Resampling)
+    print("\nRandom Forest Classifier (Baseline)...")
     rf_c_param_grid = {
         'n_estimators': [50, 100, 200],
         'max_depth': [None, 10, 20, 30],
         'min_samples_split': [2, 5, 10]
     }
-    rf_c_search = RandomizedSearchCV(RandomForestClassifier(random_state=42), rf_c_param_grid, n_iter=10, cv=3, scoring='accuracy', n_jobs=-1, verbose=1, random_state=42)
+    rf_c_search = RandomizedSearchCV(RandomForestClassifier(random_state=42), rf_c_param_grid, n_iter=10, cv=5, scoring='accuracy', n_jobs=-1, verbose=1, random_state=42)
     rf_c_search.fit(X_train_c, y_train_c)
     print(f"Best RF Classifier Params: {rf_c_search.best_params_}")
     print(f"Best RF Classifier Cross-Val Acc: {rf_c_search.best_score_:.4f}")
-    joblib.dump(rf_c_search.best_estimator_, 'random_forest/random_forest_classifier_optimized.pkl')
+    best_rf_model = rf_c_search.best_estimator_
+    joblib.dump(best_rf_model, 'random_forest/random_forest_classifier_optimized.pkl')
 
-    # 2.2 SVC Optimization
-    print("\nSupport Vector Classifier (SVC)...")
+    # 2.2 SVC Optimization (Baseline - No Resampling)
+    print("\nSupport Vector Classifier (Baseline)...")
     svc_param_grid = {
         'C': [0.1, 1, 10],
         'kernel': ['linear', 'rbf'],
         'gamma': ['scale', 'auto']
     }
-    svc_search = RandomizedSearchCV(SVC(probability=True, random_state=42), svc_param_grid, n_iter=5, cv=3, scoring='accuracy', n_jobs=-1, verbose=1, random_state=42)
+    svc_search = RandomizedSearchCV(SVC(probability=True, random_state=42), svc_param_grid, n_iter=5, cv=5, scoring='accuracy', n_jobs=-1, verbose=1, random_state=42)
     svc_search.fit(X_train_c, y_train_c)
     print(f"Best SVC Params: {svc_search.best_params_}")
     print(f"Best SVC Cross-Val Acc: {svc_search.best_score_:.4f}")
     # Saving best model
-    joblib.dump(svc_search.best_estimator_, 'SVM/svc_burnout_model_optimized.pkl')
+    best_svc_model = svc_search.best_estimator_
+    joblib.dump(best_svc_model, 'SVM/svc_burnout_model_optimized.pkl')
 
-    # 2.2 TabNet Classifier Optimization (Simple Grid)
-    print("\nTabNet Classifier (Simplified)...")
+    # 2.3 TabNet Classifier Optimization (Simple Grid with Baseline)
+    print("\nTabNet Classifier (Baseline)...")
     best_tab_c_acc = -1
     best_tab_c_params = {}
     best_tabnet_clf = None
@@ -152,6 +174,36 @@ def main():
     print(f"Best TabNet Test Accuracy: {best_tab_c_acc:.4f}")
     if best_tabnet_clf:
         best_tabnet_clf.save_model('TabNet/tabnet_burnout_model_optimized')
+
+    # 2.4 KMeans Classifier Optimization (Random Over-Sampling)
+    print("\nKMeans Classifier (Random Over-Sampling)...")
+    from imblearn.over_sampling import RandomOverSampler
+    ros = RandomOverSampler(random_state=42)
+    X_train_c_ros, y_train_c_ros = ros.fit_resample(X_train_c, y_train_c)
+    
+    kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+    kmeans.fit(X_train_c_ros)
+    
+    # Mapping clusters to probabilities for the classes
+    train_clusters = kmeans.predict(X_train_c_ros)
+    probs_dict = {}
+    for cluster in range(3):
+        mask = (train_clusters == cluster)
+        if np.sum(mask) > 0:
+            counts = np.bincount(y_train_c_ros[mask], minlength=3)
+            probs_dict[cluster] = counts / counts.sum()
+        else:
+            probs_dict[cluster] = np.ones(3) / 3
+            
+    test_clusters = kmeans.predict(X_test_c)
+    test_preds = [np.argmax(probs_dict[c]) for c in test_clusters]
+    kmeans_acc = accuracy_score(y_test_c, test_preds)
+    print(f"Best KMeans Acc (via mapped probabilities): {kmeans_acc:.4f}")
+    
+    os.makedirs('kmeans', exist_ok=True)
+    joblib.dump(kmeans, 'kmeans/kmeans_burnout_model.pkl')
+    joblib.dump(scaler, 'kmeans/kmeans_burnout_scaler.pkl')
+    joblib.dump(probs_dict, 'kmeans/kmeans_burnout_cluster_probs.pkl')
 
 if __name__ == '__main__':
     main()

@@ -56,10 +56,8 @@ print(f"R2 Score: {r2_score(y_test_r, y_pred_r):.4f}")
 print(f"MSE: {mean_squared_error(y_test_r, y_pred_r):.4f}")
 print(f"MAE: {mean_absolute_error(y_test_r, y_pred_r):.4f}")
 
-# Save regressor
-os.makedirs('random_forest', exist_ok=True)
-joblib.dump(reg_model, 'random_forest/random_forest_regressor.pkl')
-print("Model saved to random_forest/random_forest_regressor.pkl\n")
+# Check optimize_models.py to save the tuned versions instead.
+print("NOTE: Base model saving has been disabled. Use optimize_models.py to generate .pkl files.\n")
 
 
 # --- CLASSIFICATION: BURNOUT RISK ---
@@ -79,8 +77,7 @@ y_pred_c = clf_model.predict(X_test_c)
 print(f"Accuracy: {accuracy_score(y_test_c, y_pred_c):.4f}")
 print(f"F1 Score: {f1_score(y_test_c, y_pred_c, average='weighted'):.4f}")
 
-# Save classifier
-joblib.dump(clf_model, 'random_forest/random_forest_classifier.pkl')
-print("Model saved to random_forest/random_forest_classifier.pkl\n")
+# Check optimize_models.py to save the tuned versions instead.
+print("NOTE: Base model saving has been disabled. Use optimize_models.py to generate .pkl files.\n")
 
 print("Training Complete!")

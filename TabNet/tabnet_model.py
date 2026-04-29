@@ -79,11 +79,7 @@ def train_tabnet_pipeline(data_path):
     print("Classification Report:")
     print(classification_report(y_test_b, burnout_preds, target_names=encoded_classes))
     
-    # Save models
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    saved_filepath_reg = tabnet_reg.save_model(os.path.join(base_dir, "tabnet_stress_model"))
-    saved_filepath_clf = tabnet_clf.save_model(os.path.join(base_dir, "tabnet_burnout_model"))
-    print(f"\nModels saved to {saved_filepath_reg} and {saved_filepath_clf}")
+    print("\nNOTE: Base model saving disabled. Use optimize_models.py to generate .zip files.")
 
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))

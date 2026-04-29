@@ -89,84 +89,41 @@ col1, col2 = st.columns(2)
 # ==========================================
 with col1:
     st.header("📈 Stress Level Prediction")
-    reg_model_choice = st.selectbox("Select Regression Model:", ["Random Forest", "Support Vector Regressor (SVR)", "TabNet"])
+    st.markdown("**Model in use:** Support Vector Regressor (SVR) *(Best Performing)*")
     
     stress_prediction = None
     try:
-        if reg_model_choice == "Random Forest":
-            path = os.path.join(os.path.dirname(__file__), "random_forest", "random_forest_regressor_optimized.pkl")
-            model = joblib.load(path)
-            stress_prediction = model.predict(input_scaled)[0]
-            
-        elif reg_model_choice == "Support Vector Regressor (SVR)":
-            path = os.path.join(os.path.dirname(__file__), "SVM", "svr_stress_model_optimized.pkl")
-            model = joblib.load(path)
-            stress_prediction = model.predict(input_scaled)[0]
-            
-        elif reg_model_choice == "TabNet":
-            path = os.path.join(os.path.dirname(__file__), "TabNet", "tabnet_stress_model_optimized.zip")
-            model = TabNetRegressor()
-            model.load_model(path)
-            stress_prediction = model.predict(input_scaled)[0][0]
+        path = os.path.join(os.path.dirname(__file__), "SVM", "svr_stress_model_optimized.pkl")
+        model = joblib.load(path)
+        stress_prediction = model.predict(input_scaled)[0]
             
         if stress_prediction is not None:
             st.success(f"**Predicted Stress Level: {stress_prediction:.2f} / 100**")
             st.progress(min(int(stress_prediction), 100))
             
     except Exception as e:
-        st.error(f"Error loading {reg_model_choice}: {e}")
+        st.error(f"Error loading SVR model: {e}")
 
 # ==========================================
 # 4. CLASSIFICATION: BURNOUT RISK
 # ==========================================
 with col2:
     st.header("🔥 Burnout Risk Classification")
-    clf_model_choice = st.selectbox("Select Classification Model:", ["Random Forest", "Support Vector Classifier (SVC)", "TabNet", "KMeans"])
+    st.markdown("**Model in use:** Support Vector Classifier (SVC) *(Best Performing)*")
     
     burnout_prediction = None
     try:
-        if clf_model_choice == "Random Forest":
-            path = os.path.join(os.path.dirname(__file__), "random_forest", "random_forest_classifier_optimized.pkl")
-            model = joblib.load(path)
-            pred = model.predict(input_scaled)[0]
-            burnout_prediction = pred if isinstance(pred, str) else le.inverse_transform([pred])[0]
-            
-        elif clf_model_choice == "Support Vector Classifier (SVC)":
-            path = os.path.join(os.path.dirname(__file__), "SVM", "svc_burnout_model_optimized.pkl")
-            model = joblib.load(path)
-            pred = model.predict(input_scaled)[0]
-            burnout_prediction = pred if isinstance(pred, str) else le.inverse_transform([pred])[0]
-            
-        elif clf_model_choice == "TabNet":
-            path = os.path.join(os.path.dirname(__file__), "TabNet", "tabnet_burnout_model_optimized.zip")
-            model = TabNetClassifier()
-            model.load_model(path)
-            pred = model.predict(input_scaled)[0]
-            burnout_prediction = le.inverse_transform([pred])[0]
-            
-        elif clf_model_choice == "KMeans":
-            km_path = os.path.join(os.path.dirname(__file__), "kmeans", "kmeans_model.pkl")
-            if not os.path.exists(km_path):
-                km_path = os.path.join(os.path.dirname(__file__), "kmeans", "kmeans_burnout_model.pkl")
-            scaler_path = os.path.join(os.path.dirname(__file__), "kmeans", "kmeans_scaler.pkl")
-            if not os.path.exists(scaler_path):
-                scaler_path = os.path.join(os.path.dirname(__file__), "kmeans", "kmeans_burnout_scaler.pkl")
-                
-            model = joblib.load(km_path)
-            km_scaler = joblib.load(scaler_path)
-            probs_dict = joblib.load(os.path.join(os.path.dirname(__file__), "kmeans", "kmeans_burnout_cluster_probs.pkl"))
-            
-            km_input_scaled = km_scaler.transform(input_df)
-            cluster = model.predict(km_input_scaled)[0]
-            pred = np.argmax(probs_dict[cluster])
-            burnout_prediction = le.inverse_transform([pred])[0]
+        path = os.path.join(os.path.dirname(__file__), "SVM", "svc_burnout_model_optimized.pkl")
+        model = joblib.load(path)
+        pred = model.predict(input_scaled)[0]
+        burnout_prediction = pred if isinstance(pred, str) else le.inverse_transform([pred])[0]
             
         if burnout_prediction is not None:
             color = "🟢" if burnout_prediction == "Low" else "🟡" if burnout_prediction == "Medium" else "🔴"
             st.warning(f"**Predicted Burnout Risk: {color} {burnout_prediction}**")
             
     except Exception as e:
-        st.error(f"Error loading {clf_model_choice}: {e}")
+        st.error(f"Error loading SVC model: {e}")
 
 st.markdown("---")
 
@@ -181,10 +138,10 @@ bench_col1, bench_col2 = st.columns(2)
 with bench_col1:
     st.subheader("📈 Stress Level (Regression)")
     reg_bench_df = pd.DataFrame({
-        "Model": ["Support Vector Regressor", "TabNet", "Random Forest"],
-        "R² Score": [0.7884, 0.7835, 0.7677],
-        "MSE": [107.80, 110.30, 118.35],
-        "MAE": [8.18, 8.23, 8.68]
+        "Model": ["SVR (Baseline K-Fold)", "SVR (Bootstrapping)", "TabNet (Baseline K-Fold)", "Random Forest (Baseline K-Fold)"],
+        "R² Score": [0.7892, 0.7884, 0.7835, 0.7681],
+        "MSE": [108.20, 108.50, 110.30, 118.05],
+        "MAE": [8.21, 8.25, 8.23, 8.65]
     })
     
     st.dataframe(
@@ -192,7 +149,7 @@ with bench_col1:
             "R² Score": "{:.4f}",
             "MSE": "{:.2f}",
             "MAE": "{:.2f}"
-        }),
+        }).highlight_max(subset=['R² Score'], color='lightgreen').highlight_min(subset=['MSE', 'MAE'], color='lightgreen'),
         use_container_width=True,
         hide_index=True
     )
@@ -200,16 +157,18 @@ with bench_col1:
 with bench_col2:
     st.subheader("🔥 Burnout Risk (Classification)")
     clf_bench_df = pd.DataFrame({
-        "Model": ["Support Vector Classifier", "TabNet", "Random Forest", "KMeans"],
-        "Accuracy": [0.7821, 0.7770, 0.7507, 0.5117],
-        "F1 Score": [0.7816, 0.7769, 0.7487, 0.5045]
+        "Model": ["SVC (Baseline)", "SVC (SMOTE)", "Random Forest (Baseline)", "TabNet (Baseline)", "K-Means"],
+        "Accuracy": [0.7798, 0.7642, 0.7600, 0.7601, 0.4000],
+        "F1-Score (Macro)": [0.7739, 0.7672, 0.7506, 0.7559, 0.3959],
+        "Precision (Macro)": [0.7922, 0.7566, 0.7781, 0.7650, 0.4027]
     })
     
     st.dataframe(
         clf_bench_df.style.format({
             "Accuracy": "{:.4f}",
-            "F1 Score": "{:.4f}"
-        }),
+            "F1-Score (Macro)": "{:.4f}",
+            "Precision (Macro)": "{:.4f}"
+        }).highlight_max(subset=['Accuracy', 'F1-Score (Macro)', 'Precision (Macro)'], color='lightgreen'),
         use_container_width=True,
         hide_index=True
     )
